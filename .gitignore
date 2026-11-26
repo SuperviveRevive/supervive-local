@@ -1,0 +1,24 @@
+# local state and anything generated from a user's own install
+local-data/
+**/generated/
+.env
+.env.*
+!.env.example
+# certificates and keys (generated per install)
+*.pem
+*.key
+*.crt
+# game files and data dumped from them — never commit
+*.pak
+*.utoc
+*.ucas
+*.sig
+*.usmap
+*.uasset
+*.umap
+*.exe
+*.dll
+*.zip
+# misc
+node_modules/
+*.log

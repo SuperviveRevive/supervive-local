@@ -1,0 +1,26 @@
+# Contributing
+
+## Rules that keep this project publishable
+
+1. **No game files, ever** — no executables, DLLs, paks, `.usmap`, extracted assets, screenshots or audio.
+2. **No data dumped from the game** checked in. If a feature needs game data, write a generator that
+   reads the user's own install during setup and writes into `local-data/`.
+3. **No network captures of the original live service**, and nothing derived from them.
+4. **No code or data from third parties without a licence that allows it.**
+5. **Nothing that bypasses or weakens protection** — signing, encryption, anti-tamper, memory reading.
+   The game must run unmodified.
+6. **No secrets, personal data, private hostnames or IPs.**
+
+`bun tools/check-oss.ts` enforces what it can (extensions, sizes, secret shapes, private strings,
+forbidden directories, dumped data). Run `bun run check` before every pull request; all gates must pass.
+
+## Reporting what the game does
+
+The most useful contribution is evidence: the request the client made, what it expected, what happened.
+`local-data/logs/unknown.jsonl` lists every call the backend did not implement. Share method + path,
+and describe the response shape the client needed — not dumps of game files.
+
+## Code style
+
+TypeScript on Bun, no runtime dependencies. Keep handlers small, match field names exactly, accept
+PascalCase and camelCase request bodies (`pick()` in `server/lib/http.ts`).
