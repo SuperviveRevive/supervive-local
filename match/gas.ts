@@ -39,10 +39,11 @@
  * Header bounds: ASC GetMaxIndex 59 -> 60, LokiPlayerController 161 -> 162, GameState 62 -> 63 (LokiKillFeed
  *   RetailFieldMax; for index 61 bounds 62 and 63 give the same 6 bits and every retail GS block parses under both, so the capture
  *   cannot separate them — 63 is used).
- * Grant tables: retailFireFoxGrants() = the FireFox grant measured from match traffic (34 specs incl. shared passives). No other
- *   hunter has a measured kit yet.
+ * Grant tables (tables/hero-kits.ts): Ronin = rows flown in tests; retailFireFoxGrants() = the FireFox grant measured from match
+ *   traffic (34 specs incl. shared passives); other hunters = rows generated from the game's cooked hero assets, unverified on the wire.
  */
 import { BitReader, BitWriter } from "./bits.ts";
+import KITS from "./tables/hero-kits.ts";
 
 export type Guid = number | bigint;
 const big = (g: Guid) => BigInt(g);
@@ -698,18 +699,56 @@ export function decodeMulticastPlayerKilled(buf: Uint8Array, bits: number): Play
 
 // ------------------------------------------------------------------ hero grant tables
 export interface GrantRow { cls: string; pkg: string; inputId: number; level: number; selector?: boolean; swapper?: boolean; subSpells?: { cls: string; requiredTag: string | null }[] }
+/**
+ * Ronin, exactly flight-proven LokiSpellMirror GSpellDefs rows, in GrantLmb order (LightAttack1..4,
+ * then the selector, all InputID 3,
+ * Level 1; the selector's server-replicated instance carries SubSpellHandles h1 = [LA4, LA3, LA2, LA1] in cooked SubSpells order).
+ * Retail never captured a Ronin grant (every capture flow is FireFox), so this table is flown in our tests, not retail-wire.
+ */
+export const RONIN_GRANTS: GrantRow[] = [
+  { cls: "GS_Ronin_LightAttack1_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/LMB/ChargeBlade/GS_Ronin_LightAttack1", inputId: 3, level: 1 },
+  { cls: "GS_Ronin_LightAttack2_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/LMB/ChargeBlade/GS_Ronin_LightAttack2", inputId: 3, level: 1 },
+  { cls: "GS_Ronin_LightAttack3_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/LMB/ChargeBlade/GS_Ronin_LightAttack3", inputId: 3, level: 1 },
+  { cls: "GS_Ronin_LightAttack4_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/LMB/ChargeBlade/GS_Ronin_LightAttack4", inputId: 3, level: 1 },
+  { cls: "GS_Ronin_LMB_Selector_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/LMB/ChargeBlade/GS_Ronin_LMB_Selector", inputId: 3, level: 1, selector: true,
+    subSpells: [{ cls: "GS_Ronin_LightAttack4_C", requiredTag: "Ability.Ronin.BasicAttack.Selector.4" }, { cls: "GS_Ronin_LightAttack3_C", requiredTag: "Ability.Ronin.BasicAttack.Selector.3" },
+      { cls: "GS_Ronin_LightAttack2_C", requiredTag: "Ability.Ronin.BasicAttack.Selector.2" }, { cls: "GS_Ronin_LightAttack1_C", requiredTag: null }] },
+  { cls: "GS_Ronin_Special_Selector_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/SpecialAttack/GS_Ronin_Special_Selector", inputId: 4, level: 1, selector: true },
+  { cls: "GS_Ronin_Special_SpinAttack_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/SpecialAttack/SpinSlash/GS_Ronin_Special_SpinAttack", inputId: 4, level: 1 },
+  { cls: "GS_Ronin_Special_AirSlam_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/SpecialAttack/AirSlam/GS_Ronin_Special_AirSlam", inputId: 4, level: 1 },
+  { cls: "GS_Ronin_Special_HeavySlam_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/SpecialAttack/GS_Ronin_Special_HeavySlam", inputId: 4, level: 1 },
+  { cls: "GS_Ronin_MiniDash_Charges_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/MiniDash/GS_Ronin_MiniDash_Charges", inputId: 5, level: 1 },
+  { cls: "GS_Ronin_Retaliation_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/Retaliation/GS_Ronin_Retaliation", inputId: 6, level: 1 },
+  { cls: "GS_TetherHook_Swapper_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/TetherHook/GS_TetherHook_Swapper", inputId: 15, level: 1, swapper: true },
+  { cls: "GS_TetherHook_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/TetherHook/GS_TetherHook", inputId: 15, level: 1 },
+  { cls: "GS_TetherHook_Recall_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/TetherHook/GS_TetherHook_Recall", inputId: 15, level: 1 },
+  { cls: "GS_Ronin_TetherRelease_Jump_C", pkg: "/Game/Loki/Characters/Heroes/Ronin/Abilities/TetherHook/GS_Ronin_TetherRelease_Jump", inputId: 15, level: 1 },
+];
+export const RONIN_LMB = RONIN_GRANTS.slice(0, 5);
 
-type GrantsJson = { retail: Record<string, { specs: { handle: number; ability: string; level: number; inputId: number }[] }> };
+type GrantsJson = { heroes: Record<string, (GrantRow & { slot?: string })[]>; retail: Record<string, { specs: { handle: number; ability: string; level: number; inputId: number }[] }> };
 let grantsCache: GrantsJson | null = null;
 function grantsJson(): GrantsJson {
-  if (!grantsCache) grantsCache = JSON.parse(require("node:fs").readFileSync(new URL("./data/ability-grants.json", import.meta.url), "utf8"));
+  if (!grantsCache) grantsCache = KITS as unknown as GrantsJson;
   return grantsCache!;
 }
-/**
- * Per-hero kits. Only FireFox has a kit measured from real match traffic (every recorded match played FireFox);
- * every other hunter currently gets no ability rows — see docs/MATCHES.md. These return [] until a kit is measured.
- */
-export function lmbGrants(_hero: string): GrantRow[] { return []; }
-export function heroGrants(_hero: string): GrantRow[] { return []; }
-/** The measured FireFox grant (the first ActivatableAbilities of a recorded Breach match, shared passives included). */
+/** LMB (InputID 3) rows for a hero, from tools/gen-gas-grants.py . Other heroes: selector row first, then its sub-spells (each sub a separate spec on the same InputID). */
+export function lmbGrants(hero: string): GrantRow[] {
+  if (/^ronin$/i.test(hero)) return RONIN_LMB;
+  const rows = grantsJson().heroes[Object.keys(grantsJson().heroes).find((h) => h.toLowerCase() === hero.toLowerCase()) ?? ""] ?? [];
+  const top = rows.filter((r) => r.slot === "Ability1");
+  const out: GrantRow[] = [];
+  for (const t of top) {
+    out.push(t);
+    for (const s of t.subSpells ?? []) { const sub = rows.find((r) => r.cls === s.cls); if (sub && !out.includes(sub)) out.push(sub); }
+  }
+  return out;
+}
+/** Full kit for a hero . */
+export function heroGrants(hero: string): GrantRow[] {
+  if (/^ronin$/i.test(hero)) return RONIN_GRANTS;
+  const j = grantsJson().heroes; const k = Object.keys(j).find((h) => h.toLowerCase() === hero.toLowerCase());
+  return k ? j[k]! : [];
+}
+/** The retail-measured FireFox grant (flow 7038's initial ActivatableAbilities, shared passives included), paths resolved. */
 export function retailFireFoxGrants() { return grantsJson().retail["7038"]!.specs; }

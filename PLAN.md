@@ -16,7 +16,7 @@ here was written new; see `EXCLUDED.md` for what stayed behind.
 | Match server (`match/`, from our clean-room server minus third-party and recorded material) | ported; allocation e2e + protocol/match gates green; **not yet run against the real client** |
 | Game's own server mode (Agones SDK stand-in) | alternative, experimental |
 | Windows launcher / host scripts | written, syntax-checked; not run on Windows |
-| Licence | **owner to decide** (`LICENSE.TODO`) |
+| Licence | PolyForm Noncommercial 1.0.0 (`LICENSE.md`) |
 
 Next: run a real 2.0.4 client against this build (lobby → queue → match), measure kits for more hunters,
 and fill the calls listed in `local-data/logs/unknown.jsonl`.

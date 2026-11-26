@@ -125,8 +125,8 @@ for (const rel of files) {
   if (buf.includes(0)) { add("binary file", rel, "contains NUL bytes"); continue; }
   const posix = parts.join("/");
   let pinned = false;
-  if (posix.startsWith("match/data/")) {
-    const want = PINNED[name]?.sha256;
+  if (posix.startsWith("match/data/") || posix.startsWith("match/tables/")) {
+    const want = PINNED[posix]?.sha256;
     const got = createHash("sha256").update(buf).digest("hex");
     if (!want) add("unlisted match table", rel, "not in tools/match-tables.json");
     else if (want !== got) add("match table changed", rel, `sha256 ${got.slice(0, 16)}… ≠ pinned ${want.slice(0, 16)}…`);

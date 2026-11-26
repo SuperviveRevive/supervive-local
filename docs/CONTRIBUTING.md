@@ -1,5 +1,10 @@
 # Contributing
 
+## Licence of contributions
+
+By contributing you agree your contribution is licensed under the repository licence (PolyForm
+Noncommercial 1.0.0, `LICENSE.md`).
+
 ## Rules that keep this project publishable
 
 1. **No game files, ever** — no executables, DLLs, paks, `.usmap`, extracted assets, screenshots or audio.
@@ -8,7 +13,7 @@
    the user's own install during setup and writes into `local-data/`.
 3. **No network captures** of the original live service in the repository — no capture files, packet
    dumps or replayed recorded bytes. Rules and values *learned* from recordings are fine in code.
-4. **No code or data from third parties without a licence that allows it.**
+4. **No code or data from third parties without permission** (a licence or the owner's explicit say-so).
 5. **Nothing that bypasses or weakens protection** — signing, encryption, anti-tamper, memory reading.
    The game must run unmodified.
 6. **No secrets, personal data, private hostnames or IPs.**

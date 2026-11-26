@@ -1,15 +1,61 @@
 {
-  "_comment": "Data tables the match server needs. Each is pinned by SHA-256; check-oss fails on any other file under match/data/ or on a changed hash. Re-pin only after reviewing the diff. None of these contains recorded traffic.",
-  "tables": {
-    "ability-grants.json":        { "sha256": "4c12c6f1c4ffafa6f5e0101caa5ea73ae26b90896d4422b87df007f8351e106c", "source": "ability spec lists decoded from recorded match traffic (handles, ability class paths, levels, input ids)" },
-    "learned-floor-seed-204.json":{ "sha256": "c2a512ac9b1e12a8ed33ff77ebdd22fffb1125193852e2ed402ae6abc24183a8", "source": "walkable positions learned from our own test matches" },
-    "match-config.json":          { "sha256": "83706a08d7f01c03aebde95ba7ee9ba2136cd9c1428cc017dbea871549971f01", "source": "our own default match rules" },
-    "netguid-map.json":           { "sha256": "4ebe6afc89059f9cbe695eb3186bd41c1aa54a636a8123b0a32ca6e7eb34c467", "source": "our own export path table" },
-    "netlayout.json":             { "sha256": "02caaf1ff9379fe663320c306047a753e6904141afe83fa5f2b88c1f960022fc", "source": "replication field order of engine/game classes, from the game executable" },
-    "spawnpoints-204.json":       { "sha256": "3bd20d57e35f91d693c2b390c1f86666f427990913390bd2fbfba5edcc9bb2a8", "source": "spawn actor locations from the game's map files" },
-    "spawnpoints-ffa-204.json":   { "sha256": "dd39ae1a98d443539e811278e1888995c62cd7652380b5b287317566c41d584c", "source": "free-for-all spawn locations" },
-    "sv-funcflags-204.json":      { "sha256": "09f84636f9701a9f1400109e2833956876d3aab90cad32246bbad2313c37c063", "source": "function flags from the game executable's reflection data" },
-    "sv-replayout-204.json":      { "sha256": "3291ae5e8db42e6ad4968a0a7521d3155a2acb76cbd7575551ff583565668135", "source": "replication layouts from the game executable's reflection data" },
-    "usmap-enums-204.json":       { "sha256": "b30381d2a4b313a4157aa217581afeed48706a435fe59f1a45fa8439075d742f", "source": "enum names and values from the game's type mappings" }
+ "_comment": "Tables the match server needs, as data files or generated table modules. Each is pinned by SHA-256; check-oss fails on any unlisted file under match/data/ or match/tables/, or on a changed hash. Re-pin only after reviewing the diff. None of these contains recorded traffic.",
+ "tables": {
+  "match/data/learned-floor-seed-204.json": {
+   "sha256": "c2a512ac9b1e12a8ed33ff77ebdd22fffb1125193852e2ed402ae6abc24183a8",
+   "source": "walkable positions learned from our own test matches"
+  },
+  "match/data/match-config.json": {
+   "sha256": "83706a08d7f01c03aebde95ba7ee9ba2136cd9c1428cc017dbea871549971f01",
+   "source": "our own default match rules"
+  },
+  "match/data/netguid-map.json": {
+   "sha256": "4ebe6afc89059f9cbe695eb3186bd41c1aa54a636a8123b0a32ca6e7eb34c467",
+   "source": "our own export path table"
+  },
+  "match/data/netlayout.json": {
+   "sha256": "02caaf1ff9379fe663320c306047a753e6904141afe83fa5f2b88c1f960022fc",
+   "source": "replication field order of engine/game classes, from the game executable"
+  },
+  "match/data/spawnpoints-204.json": {
+   "sha256": "3bd20d57e35f91d693c2b390c1f86666f427990913390bd2fbfba5edcc9bb2a8",
+   "source": "spawn actor locations from the game's map files"
+  },
+  "match/data/spawnpoints-ffa-204.json": {
+   "sha256": "dd39ae1a98d443539e811278e1888995c62cd7652380b5b287317566c41d584c",
+   "source": "free-for-all spawn locations"
+  },
+  "match/data/sv-funcflags-204.json": {
+   "sha256": "09f84636f9701a9f1400109e2833956876d3aab90cad32246bbad2313c37c063",
+   "source": "function flags from the game executable's reflection data"
+  },
+  "match/data/sv-replayout-204.json": {
+   "sha256": "3291ae5e8db42e6ad4968a0a7521d3155a2acb76cbd7575551ff583565668135",
+   "source": "replication layouts from the game executable's reflection data"
+  },
+  "match/data/usmap-enums-204.json": {
+   "sha256": "b30381d2a4b313a4157aa217581afeed48706a435fe59f1a45fa8439075d742f",
+   "source": "enum names and values from the game's type mappings"
+  },
+  "match/tables/hero-kits.ts": {
+   "sha256": "276d73dfd341e41a45d9eb271353969ff8f5f40a11fd8a200a6af86e9ae1fddc",
+   "source": "ability grant rows per hunter (from the game's cooked hero assets and flown tests) + the FireFox grant decoded from recorded matches"
+  },
+  "match/tables/instance-policy.ts": {
+   "sha256": "888214e1a62371b2074b2c19b969dd579689912503e9051e3f535524eedac15f",
+   "source": "ability instance replication policy and per-hunter attribute maxima"
+  },
+  "match/tables/montages.ts": {
+   "sha256": "5b77d411f9bcca6ab01a537d16a0fb4c58aab9566b1f9ef4984fac2d08199399",
+   "source": "ability-to-montage map per hunter"
+  },
+  "match/tables/floor-spawns.ts": {
+   "sha256": "47b406e713cd70ec9ac5802bafe87f39d4470c2cd470b95ad3004606772fd3f5",
+   "source": "terrain-verified Breach spawn points"
+  },
+  "match/tables/breach-floor.ts": {
+   "sha256": "33b4e40a9611d9446d1502a5b3738cca64074eaa62dc55ab9322f462754b632e",
+   "source": "Breach terrain collision triangles"
   }
+ }
 }

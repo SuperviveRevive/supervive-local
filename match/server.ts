@@ -5,6 +5,7 @@ import { mkdirSync, appendFileSync, existsSync, readFileSync } from "node:fs";
 /** Optional local packet log for debugging your own matches (off unless REVIVE_MATCH_PACKET_LOG is set to a directory). */
 const CAPTURE_DIR = process.env.REVIVE_MATCH_PACKET_LOG || "";
 import { fileURLToPath } from "node:url";
+import INSTANCE_POLICY from "./tables/instance-policy.ts";
 import {
   BitReader, BitWriter, ENGINE_NET_VER_LATEST, NMT, EChannelName, DESTROYED,
   newBunch, writeBunch, readBunch, parseHandshake, isHandshake, makeChallenge,
@@ -181,11 +182,8 @@ const GAS_INSTANCES = process.env.LOKI_GAS_INSTANCES ?? "policy";
 /** Send the ASC's OwnerActor/AvatarActor (h7/h8, retail COND_None): without them the client ASC has no avatar and refuses every press. */
 const GAS_ACTOR_INFO = process.env.LOKI_GAS_ACTOR_INFO !== "0";
 type InstPolicy = { rep: boolean; family: string; maxCharges?: number };
-/** Which ability classes replicate an instance. Not shipped (no measured table beyond FireFox); optional data/gas-instance-policy.json. */
-const GAS_POLICY: { classes: Record<string, InstPolicy>; heroes: Record<string, { maxHealth: number; maxMana: number; maxStamina: number }> } = (() => {
-  try { return JSON.parse(readFileSync(new URL("./data/gas-instance-policy.json", import.meta.url), "utf8")); }
-  catch { return { classes: {}, heroes: {} }; }
-})();
+/** Which ability classes replicate an instance, and per-hunter attribute maxima (tables/instance-policy.ts). */
+const GAS_POLICY = INSTANCE_POLICY as unknown as { classes: Record<string, InstPolicy>; heroes: Record<string, { maxHealth: number; maxMana: number; maxStamina: number }> };
 const ascGuidOf = (ord: number) => carrierGuid(ord) + 6n;
 const abilIndex = new Map<string, number>();
 /** Static GUIDs per ability class (odd, above hero archetypes at 0x10000+): pkg, +2 class, +4 CDO. */
@@ -193,14 +191,15 @@ const abilGuid = (cls: string) => { let i = abilIndex.get(cls); if (i === undefi
 const abilInstGuid = (ord: number, i: number) => 0x30000n + BigInt(ord) * 0x200n + BigInt(i) * 2n;
 const ABILITY_SIM: Record<number, string> = { 3: "primary", 4: "bolt", 6: "barrage", 15: "nova" };
 const SIM_INPUT: Record<string, number> = Object.fromEntries(Object.entries(ABILITY_SIM).map(([k, v]) => [v, Number(k)]));
-/** Hero movement stats [MoveSpeed, MaxAcceleration]. No per-hero table is shipped: every hero uses the same values unless
- *  data/hero-stats.json (optional, user-supplied: {"move": {"Hero": [speed, accel]}}) overrides them. */
-const HERO_STATS_FILE: { move?: Record<string, [number, number]>; hp?: Record<string, number> } = (() => {
-  try { return JSON.parse(readFileSync(new URL("./data/hero-stats.json", import.meta.url), "utf8")); } catch { return {}; }
-})();
-const HERO_MOVE: Record<string, [number, number]> = new Proxy(HERO_STATS_FILE.move || {}, {
-  get: (t, k: string) => (t as Record<string, [number, number]>)[k] ?? [465, 5400],
-});
+/** Level-1 hunter movement rows: MoveSpeed, MaxAcceleration. MaxMoveSpeed 700, GroundFriction 1,
+ *  BrakingDecelerationWalking 2220, AirControlMultiplier 1, YawRotationRate -1 (instant), Mass 100 for all. */
+const HERO_MOVE: Record<string, [number, number]> = {
+  Alchemist: [455, 5400], Assault: [455, 5400], BacklineHealer: [465, 5400], Beebo: [430, 5400], BountyHunter: [465, 5400],
+  BurstCaster: [455, 5400], Earthtank: [465, 5000], FarShot: [445, 5400], FireFox: [465, 5400], Flex: [475, 5400],
+  Freeze: [445, 5400], Gunner: [430, 5400], HookGuy: [465, 4700], Huntress: [455, 5400], Reaper: [485, 5000],
+  ResHealer: [455, 5400], RocketJumper: [430, 5000], Ronin: [455, 5400], ShieldBot: [485, 4700], Sniper: [490, 5400],
+  Stalker: [465, 5400], Storm: [465, 5400], Succubus: [480, 5400], Void: [465, 5400], Wukong: [455, 5400],
+};
 /** HeroCosmeticsBundle default per hero folder: the "<Folder>Default" naming the game's own bundles use. */
 const heroBundle = (folder: string) => folder === "BacklineHealer" ? "BacklineHealer" : `${folder}Default`;
 const REP_COSMETICS = process.env.LOKI_REP_COSMETICS !== "0";

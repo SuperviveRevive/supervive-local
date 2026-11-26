@@ -13,7 +13,7 @@
  * The ability -> montage table is data/ability-montages-204.json (tools/gen-montage-map.py: the cooked
  * WarmupMontage where known, else a name/slot match preferring montages retail actually played).
  */
-import { readFileSync } from "node:fs";
+import MONTAGES from "./tables/montages.ts";
 import { BitReader, BitWriter } from "./bits.ts";
 import { writePredictionKey, readPredictionKey, type PredictionKey, writeBitsN, readBitsN } from "./gas.ts";
 
@@ -63,7 +63,7 @@ export function readRepAnimMontage(r: BitReader): MontagePlay {
 export interface MontageRow { inputId: number; pkg: string; obj: string; combat: number; rate: number; blend: number; src: string }
 type Table = Record<string, Record<string, MontageRow>>;
 const TABLE: Table = (() => {
-  try { return JSON.parse(readFileSync(new URL("./data/ability-montages-204.json", import.meta.url), "utf8")).heroes ?? {}; }
+  try { return (MONTAGES as any).heroes ?? {}; }
   catch { return {}; }
 })();
 /** Retail-verified overrides where the generator's name match is wrong (retail flows: FireFox R = AM_FireFox_Ability_R). */

@@ -2,6 +2,8 @@
 // A hero placed off-island falls forever (2026-11-24: spawned at (401,0) on SkylandsBreach,
 // z reached -19,000 in 20 s), so every human spawn and void rescue goes through here.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import FLOOR_SPAWNS from "./tables/floor-spawns.ts";
+import BREACH_FLOOR from "./tables/breach-floor.ts";
 import { dirname } from "node:path";
 import { join } from "node:path";
 
@@ -15,7 +17,7 @@ try {
 // abyss on the client's Breach terrain (no collision → endless fall, the 2026-11-24 "spectate" bug).
 const floorVerified = new Set<string>();
 try {
-  const v = JSON.parse(readFileSync(join(import.meta.dir, "data", "spawnpoints-204-floor.json"), "utf8"));
+  const v = FLOOR_SPAWNS as unknown as Record<string, MapSpawns>;
   if (process.env.LOKI_SPAWN_FLOOR !== "0") for (const [k, m] of Object.entries(v)) if (!k.startsWith("_")) { table[k] = m as MapSpawns; floorVerified.add(k); }
 } catch {}
 const FLOOR_HEIGHT = Number(process.env.LOKI_SPAWN_FLOOR_Z || 110);
@@ -108,7 +110,7 @@ function loadGrid() {
   if (grid) return grid;
   grid = new Map();
   try {
-    const tris = JSON.parse(readFileSync(join(import.meta.dir, "data", "breach-floor-tris.json"), "utf8")) as number[][];
+    const tris = BREACH_FLOOR as unknown as number[][];
     for (const t of tris) {
       const x0 = Math.floor(Math.min(t[0]!, t[3]!, t[6]!) / CELL), x1 = Math.floor(Math.max(t[0]!, t[3]!, t[6]!) / CELL);
       const y0 = Math.floor(Math.min(t[1]!, t[4]!, t[7]!) / CELL), y1 = Math.floor(Math.max(t[1]!, t[4]!, t[7]!) / CELL);

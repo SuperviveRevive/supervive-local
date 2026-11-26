@@ -205,10 +205,8 @@ const DEFAULT_ABILITIES: AbilityDef[] = [
 // GAS works in-client since 2026-11-25, so humans can fight back: bots now target them (LOKI_BOTS_HIT_HUMANS=0 disables).
 const BOTS_HIT_HUMANS = process.env.LOKI_BOTS_HIT_HUMANS !== "0";
 const ZONE_HITS_HUMANS = process.env.LOKI_ZONE_HITS_HUMANS === "1";
-/** MaxHealth per hero. No per-hero table is shipped; every hero uses one value unless data/hero-stats.json sets "hp". */
-const HERO_HP: Record<string, number> = new Proxy((() => {
-  try { return JSON.parse(require("node:fs").readFileSync(new URL("./data/hero-stats.json", import.meta.url), "utf8")).hp || {}; } catch { return {}; }
-})(), { get: (t, k: string) => t[k] ?? 1290 });
+/** MaxHealth per hunter (CT_LokiCharacterAttributes level 1). */
+const HERO_HP: Record<string, number> = { Alchemist: 1290, Assault: 1225, BacklineHealer: 1225, Beebo: 1500, BountyHunter: 1225, BurstCaster: 1290, Earthtank: 1290, FarShot: 1225, FireFox: 1290, Flex: 1225, Freeze: 1290, Gunner: 1475, HookGuy: 1445, Huntress: 1100, Reaper: 1225, ResHealer: 1290, RocketJumper: 1225, Ronin: 1290, ShieldBot: 1475, Sniper: 1225, Stalker: 1290, Storm: 1400, Succubus: 1290, Void: 1150, Wukong: 1506 };
 const BOT_MAX_GLIDE_MS = Number(process.env.LOKI_BOT_MAX_GLIDE_MS || 20000);
 const HUMAN_MELEE_REACH = Number(process.env.LOKI_HUMAN_MELEE_REACH || 450);
 const HUMAN_RANGED_REACH = Number(process.env.LOKI_HUMAN_RANGED_REACH || 1500);

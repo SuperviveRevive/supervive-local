@@ -35,19 +35,16 @@ recordings — no capture files, packet dumps or replayed recorded bytes are in 
 - Bots, teams, damage, knocks, kills, respawn rules, win conditions; the storm and its phases.
 - World loot boxes, shops and wallet, death boxes, basecamps (capture points), objectives for the
   non-Breach modes (Domination, Battlefield, PrismaBank…), mode profiles and round phases.
-- Abilities: the server-side ability system wire (grants, activation, prediction keys, kill feed).
+- Abilities: the server-side ability system wire (grants, activation, prediction keys, kill feed), other
+  players' cast animations.
 
 ## Known limits — read before you play
 
-- **Only FireFox has an ability kit.** Kits are measured from recorded traffic, and every recorded match
-  played FireFox. Other hunters spawn and move but have no abilities until their kits are measured.
-  `match/data/ability-grants.json` is where new kits go.
-- **One set of hunter stats.** Health and movement speed are the same for every hunter unless you add
-  `match/data/hero-stats.json` (`{"hp": {"Hero": 1290}, "move": {"Hero": [465, 5400]}}`).
+- **Ability kits.** Every hunter has a kit (`match/tables/hero-kits.ts`). FireFox's is decoded from recorded
+  matches and Ronin's was flown in tests; the others come from the game's cooked hero assets and have not been
+  checked on the wire yet — expect some to misbehave until they are.
 - **No recorded world replay.** Map actors whose initial state was only known from recordings (some
   world props, Airdoos) are not sent.
-- **No terrain collision table.** Spawns and landings fall back to the spawn tables and floor points the
-  server learns from players walking (`local-data/match/learned-floor.json`).
 - **Verification.** The gates below run on Linux without the game. Earlier builds of this server were
   driven with a real 2.0.4 client (lobby → Breach → drop → landing → shop/death boxes worked); this
   exact build, with the items above removed, has **not yet been run against the real client**.
@@ -63,10 +60,11 @@ recordings — no capture files, packet dumps or replayed recorded bytes are in 
 | `tools/test/match/check-ue-protocol.ts` | packet framing and acks |
 | `tools/test/match/check-ue-match.ts` | match simulation: bots, teams, movement, abilities, combat, storm, respawn, win conditions, round phases |
 | `tools/test/match/check-objectives.ts`, `check-modes.ts` | every objective mode and mode profile |
+| `tools/test/match/check-kits.ts` | every hunter resolves to a kit |
 
 ## Data tables
 
-`match/data/` holds the tables the server needs, each pinned by SHA-256 in `tools/match-tables.json`
-(the release gate refuses any other file there). They describe the game's network structure —
+`match/data/` and `match/tables/` hold the tables the server needs, each pinned by SHA-256 in
+`tools/match-tables.json` (the release gate refuses any other file there). They describe the game's network structure —
 replication layouts and function flags from the executable's reflection data, enum values, spawn
 locations — plus ability specs decoded from traffic. They contain no recorded packets.

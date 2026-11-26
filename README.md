@@ -26,7 +26,7 @@ small backend that you run yourself and that stands in for them.
 | Everything unlocked (from the catalog your setup generates) | Implemented; asset names are inferred (see *Known limits*) |
 | TLS redirect proxy with a per-install CA | Implemented and tested |
 | Windows launcher (`client/launch.ps1`) | Written and syntax-checked; **not yet run against the real game** |
-| **Matches** — `bun run match` on the host PC | Match server built in; allocation tested end to end with the backend. **This build has not yet been run against the real client.** Only FireFox has abilities. See [docs/MATCHES.md](docs/MATCHES.md) |
+| **Matches** — `bun run match` on the host PC | Match server built in; allocation tested end to end with the backend. **This build has not yet been run against the real client.** Every hunter has a kit; only FireFox's is measured on the wire. See [docs/MATCHES.md](docs/MATCHES.md) |
 
 If no match server is running, a match ends after Hero Select with the reason `no_host_available` and
 everyone returns to the lobby. The backend never pretends a server exists.
@@ -101,8 +101,7 @@ Delete `local-data\` to forget profiles, keys and generated data.
   hunters and roughly 90% of cosmetics. Items it misses simply show as locked.
 - **No queue list ships.** Queues come from your install's game-mode table, auto-paired to maps by name,
   and can be edited by hand in `local-data/queues.json`.
-- **Matches** have the limits listed in [docs/MATCHES.md](docs/MATCHES.md) — most importantly, only FireFox
-  has abilities so far. Progression, ranked, shop, battle pass and voice are not part of this edition.
+- **Matches** have the limits listed in [docs/MATCHES.md](docs/MATCHES.md). Progression, ranked, shop, battle pass and voice are not part of this edition.
 - **Feature toggles** the client reads from its config are empty by default; put a JSON object in
   `local-data/feature-toggles.json` to set any.
 
@@ -117,4 +116,6 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/CONTRIBUTING.md](docs
 
 ## Licence
 
-Not chosen yet — see `LICENSE.TODO`. Until a licence file exists, all rights are reserved.
+[PolyForm Noncommercial 1.0.0](LICENSE.md). You may use, study, change, fork and share this for any
+noncommercial purpose; contributions are welcome under the same terms. Selling it, or using it to make
+money, is not permitted. (This is a source-available licence, not an OSI "open source" one.)
