@@ -22,7 +22,7 @@ export const DATA_DIR = resolve(env.REVIVE_DATA_DIR || "./local-data");
 export const PUBLIC_HOST = env.REVIVE_PUBLIC_HOST || (LAN ? lanAddress() : "127.0.0.1");
 export const MATCH_PORT = num(env.REVIVE_MATCH_PORT, 7777);
 export const BOT_FILL_MS = num(env.REVIVE_BOT_FILL_SECONDS, 20) * 1000;
-export const EXPERIMENTAL_HOSTING = flag(env.REVIVE_EXPERIMENTAL_HOSTING);
+export const EXPERIMENTAL_HOSTING = env.REVIVE_EXPERIMENTAL_HOSTING === undefined || env.REVIVE_EXPERIMENTAL_HOSTING === "" ? true : flag(env.REVIVE_EXPERIMENTAL_HOSTING);
 export const HERO_SELECT_MS = num(env.REVIVE_HERO_SELECT_SECONDS, 30) * 1000;
 export const HOST_WAIT_MS = num(env.REVIVE_HOST_WAIT_SECONDS, 90) * 1000;
 export const VERSION = "0.1.0";

@@ -3,9 +3,11 @@
 ## Rules that keep this project publishable
 
 1. **No game files, ever** — no executables, DLLs, paks, `.usmap`, extracted assets, screenshots or audio.
-2. **No data dumped from the game** checked in. If a feature needs game data, write a generator that
-   reads the user's own install during setup and writes into `local-data/`.
-3. **No network captures of the original live service**, and nothing derived from them.
+2. **No data dumped from the game** checked in, except the pinned match-server structure tables in
+   `match/data/` (`tools/match-tables.json`). Anything else that needs game data gets a generator that reads
+   the user's own install during setup and writes into `local-data/`.
+3. **No network captures** of the original live service in the repository — no capture files, packet
+   dumps or replayed recorded bytes. Rules and values *learned* from recordings are fine in code.
 4. **No code or data from third parties without a licence that allows it.**
 5. **Nothing that bypasses or weakens protection** — signing, encryption, anti-tamper, memory reading.
    The game must run unmodified.

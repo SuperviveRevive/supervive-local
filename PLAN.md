@@ -13,9 +13,10 @@ here was written new; see `EXCLUDED.md` for what stayed behind.
 | TLS proxy with per-install CA, consented trust install, byte-exact uninstall | done, tested |
 | Setup: 2.0.4 check, catalog + queue generators from the user's own install | done, tested on synthetic input |
 | Backend: local login, IAM, lobby/messenger WS, friends, parties, queues, bot fill, Hero Select | done, tested end to end |
-| Host-run match servers (Agones SDK stand-in, host registry, allocation) | built, tested without the game; **experimental** |
+| Match server (`match/`, from our clean-room server minus third-party and recorded material) | ported; allocation e2e + protocol/match gates green; **not yet run against the real client** |
+| Game's own server mode (Agones SDK stand-in) | alternative, experimental |
 | Windows launcher / host scripts | written, syntax-checked; not run on Windows |
 | Licence | **owner to decide** (`LICENSE.TODO`) |
 
-Next: run the launcher against a real 2.0.4 install, fill the calls listed in
-`local-data/logs/unknown.jsonl`, and find out what the game's server mode needs after allocation.
+Next: run a real 2.0.4 client against this build (lobby → queue → match), measure kits for more hunters,
+and fill the calls listed in `local-data/logs/unknown.jsonl`.

@@ -1,8 +1,7 @@
-# Host-run matches  —  EXPERIMENTAL
+# Using the game's own server mode  —  EXPERIMENTAL, secondary
 
-**This has not been seen to complete a match.** It is off unless the host sets
-`REVIVE_EXPERIMENTAL_HOSTING=1`. Everything below describes what the code does and what is known to be
-missing.
+The normal way to host matches is the built-in match server (docs/MATCHES.md). This page describes an
+alternative that uses the game's own server mode instead. **It has not been seen to complete a match.**
 
 ## The idea
 
@@ -19,7 +18,7 @@ without defeating the game's protection, which this project will not do.
 On the host PC:
 
 ```powershell
-# .env: REVIVE_LAN=1, REVIVE_EXPERIMENTAL_HOSTING=1
+# .env: REVIVE_LAN=1  (do not also run `bun run match`)
 bun start
 powershell -ExecutionPolicy Bypass -File client\launch.ps1 -Name Host          # once, writes the overrides
 powershell -ExecutionPolicy Bypass -File client\host.ps1                       # starts the match server

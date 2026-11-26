@@ -14,6 +14,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, sep, extname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const j = (...p: string[]) => p.join("");
 const argv = process.argv.slice(2);
@@ -81,6 +82,7 @@ const INFRA: [string, RegExp][] = [
   ["private infra", new RegExp(j("loki-", "(backend|tunnel)"))],
   ["private infra", new RegExp(j("supervive", "-ue\\b"))],
   ["private infra", new RegExp(j("supervisor", "ctl"))],
+  ["public IPv4 literal", /(?<!oid\(")(?!2\.5\.)(?!1\.2\.840\.)(?!1\.3\.6\.1\.)(?<![\w.])(?!(?:10|127|0)\.)(?!192\.168\.)(?!172\.(?:1[6-9]|2\d|3[01])\.)(?!169\.254\.)(?!255\.)(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}(?::\d+)?(?![\w.])/],
 ];
 
 const SECRETS: [string, RegExp][] = [
@@ -97,6 +99,11 @@ const SECRETS: [string, RegExp][] = [
 const CIRCUMVENTION = new RegExp(j("mem", "xref|mem", "probe|pak", "_key|sig ", "bypass|signa", "ture bypass"), "i");
 const GAME_PATH = /\/Game\/[A-Za-z0-9_]+\/[A-Za-z0-9_/.]+/g;
 const MAX_GAME_PATHS = 25;
+
+// Pinned match-server tables: allowed only as listed, byte-for-byte.
+const PINNED: Record<string, { sha256: string }> = (() => {
+  try { return JSON.parse(readFileSync(join(ROOT, "tools", "match-tables.json"), "utf8")).tables || {}; } catch { return {}; }
+})();
 
 // ---- 3. scan -------------------------------------------------------------------------------------
 const files = listFiles();
@@ -116,6 +123,15 @@ for (const rel of files) {
 
   const buf = readFileSync(abs);
   if (buf.includes(0)) { add("binary file", rel, "contains NUL bytes"); continue; }
+  const posix = parts.join("/");
+  let pinned = false;
+  if (posix.startsWith("match/data/")) {
+    const want = PINNED[name]?.sha256;
+    const got = createHash("sha256").update(buf).digest("hex");
+    if (!want) add("unlisted match table", rel, "not in tools/match-tables.json");
+    else if (want !== got) add("match table changed", rel, `sha256 ${got.slice(0, 16)}… ≠ pinned ${want.slice(0, 16)}…`);
+    else pinned = true;
+  }
   const text = buf.toString("utf8");
   const lines = text.split("\n");
 
@@ -126,9 +142,10 @@ for (const rel of files) {
     }
   };
   for (const [label, re] of INFRA) scan("infrastructure/identity string", label, re);
-  for (const [label, re] of SECRETS) scan("secret-shaped string", label, re);
+  if (posix !== "tools/match-tables.json") for (const [label, re] of SECRETS) scan("secret-shaped string", label, re);
   scan("protection-circumvention reference", "keyword", CIRCUMVENTION);
 
+  if (pinned) continue;
   const gamePaths = new Set(text.match(GAME_PATH) || []);
   if (gamePaths.size > MAX_GAME_PATHS) add("generated/dumped game data", rel, `${gamePaths.size} distinct /Game/ asset paths (limit ${MAX_GAME_PATHS})`);
   if (/\.json$/i.test(name) && st.size > 256 * 1024) add("generated/dumped game data", rel, "JSON file over 256 KB");

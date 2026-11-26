@@ -10,6 +10,8 @@ small backend that you run yourself and that stands in for them.
 - **No game files.** Nothing from the game is in this repository. On first setup the tools read *your*
   install (read-only) and generate the data they need into `local-data/`, which is never committed.
 - **The game runs unmodified.** No patched executables, no extra paks, no injected DLLs, no mods.
+- **No recordings.** The match server was built using what recorded retail matches showed, but no capture
+  files, packet dumps or replayed recorded bytes are included.
 
 > Not affiliated with, endorsed by or connected to Theorycraft Games or AccelByte. No game files are
 > included or distributed. You need your own copy of the game.
@@ -24,11 +26,10 @@ small backend that you run yourself and that stands in for them.
 | Everything unlocked (from the catalog your setup generates) | Implemented; asset names are inferred (see *Known limits*) |
 | TLS redirect proxy with a per-install CA | Implemented and tested |
 | Windows launcher (`client/launch.ps1`) | Written and syntax-checked; **not yet run against the real game** |
-| **Matches** — a host PC runs its own game as the match server | **EXPERIMENTAL, off by default, never seen to complete a match.** See [docs/LISTEN-SERVER.md](docs/LISTEN-SERVER.md) |
+| **Matches** — `bun run match` on the host PC | Match server built in; allocation tested end to end with the backend. **This build has not yet been run against the real client.** Only FireFox has abilities. See [docs/MATCHES.md](docs/MATCHES.md) |
 
-With hosting off (the default) you can sign in, form parties, queue and go through Hero Select; the
-match then ends and you return to the lobby with the reason `hosting_disabled`. The backend never
-pretends a server exists.
+If no match server is running, a match ends after Hero Select with the reason `no_host_available` and
+everyone returns to the lobby. The backend never pretends a server exists.
 
 ## Requirements
 
@@ -64,7 +65,8 @@ Details, accepted formats and how to edit the queue list: [docs/SETUP.md](docs/S
 
 ```powershell
 bun start                                                        # terminal 1: the backend
-powershell -ExecutionPolicy Bypass -File client\launch.ps1 -Name "YourName"   # terminal 2
+bun run match                                                    # terminal 2: the match server (UDP 7777)
+powershell -ExecutionPolicy Bypass -File client\launch.ps1 -Name "YourName"   # terminal 3
 ```
 
 The launcher starts the TLS proxy, asks once whether to trust the CA it generated (see *What it changes*),
@@ -73,7 +75,8 @@ writes the service overrides into your user config, signs you in and starts the 
 ## Play with friends on a LAN
 
 On the host PC set `REVIVE_LAN=1` in `.env` (optionally `REVIVE_BIND` / `REVIVE_PUBLIC_HOST`), then
-`bun start`. The backend prints the address friends should use. Each friend runs:
+`bun start` and `bun run match`, and allow TCP 24970 and UDP 7777 through the firewall. The backend prints
+the address friends should use. Each friend runs:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File client\launch.ps1 -Name "TheirName" -Backend http://<host-ip>:24970
@@ -98,8 +101,8 @@ Delete `local-data\` to forget profiles, keys and generated data.
   hunters and roughly 90% of cosmetics. Items it misses simply show as locked.
 - **No queue list ships.** Queues come from your install's game-mode table, auto-paired to maps by name,
   and can be edited by hand in `local-data/queues.json`.
-- **Matches are experimental** (above). Progression, ranked, shop, battle pass and voice are not part of
-  this edition.
+- **Matches** have the limits listed in [docs/MATCHES.md](docs/MATCHES.md) — most importantly, only FireFox
+  has abilities so far. Progression, ranked, shop, battle pass and voice are not part of this edition.
 - **Feature toggles** the client reads from its config are empty by default; put a JSON object in
   `local-data/feature-toggles.json` to set any.
 

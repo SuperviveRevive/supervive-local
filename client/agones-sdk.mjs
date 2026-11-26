@@ -11,7 +11,7 @@
 //   bun client/agones-sdk.mjs --backend http://127.0.0.1:24970 [--port 9358] [--match-port 7777] [--public-host <lan ip>]
 //
 // Which label/annotation keys the game reads after allocation is not known; the match id is published
-// under the keys in REVIVE_AGONES_KEYS (comma separated). See docs/LISTEN-SERVER.md.
+// under the keys in REVIVE_AGONES_KEYS (comma separated). See docs/GAME-SERVER-MODE.md.
 
 import crypto from "node:crypto";
 import fs from "node:fs";

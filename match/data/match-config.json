@@ -1,0 +1,39 @@
+{
+  "_comment": "Authoritative match rules. Env overrides: LOKI_MATCH_MODE, LOKI_MATCH_BOTS, LOKI_MATCH_DURATION_MS, LOKI_MATCH_RESPAWN_MS, LOKI_MATCH_SCORE_LIMIT, LOKI_MATCH_TEAMS, LOKI_MATCH_MIN_PLAYERS, LOKI_MATCH_CONFIG (path to a JSON file merged over these rules).",
+  "mode": "battle_royale",
+  "maxPlayers": 36,
+  "minPlayers": 2,
+  "teamCount": 12,
+  "botCount": 35,
+  "fillBots": true,
+  "countdownMs": 45000,
+  "durationMs": 1500000,
+  "respawnMs": -1,
+  "scoreLimit": 0,
+  "spawnRadius": 2400,
+  "moveSpeed": 465,
+  "sprintMultiplier": 1.45,
+  "acceleration": 2400,
+  "friction": 1800,
+  "gravity": 980,
+  "jumpSpeed": 470,
+  "eyeHeight": 120,
+  "hp": 220,
+  "shield": 250,
+  "mana": 100,
+  "manaRegenPerSec": 7,
+  "shot": {
+    "damage": 70,
+    "range": 2800,
+    "cooldownMs": 500,
+    "spreadDeg": 2.5
+  },
+  "zone": {
+    "enabled": true,
+    "startRadius": 60000,
+    "endRadius": 2000,
+    "shrinkStartMs": 240000,
+    "shrinkEndMs": 1080000,
+    "dps": 45
+  }
+}

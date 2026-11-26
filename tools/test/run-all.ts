@@ -1,7 +1,7 @@
 // Runs every gate and prints one summary line each. Exit 1 if any gate fails.
 import { join } from "node:path";
 const dir = import.meta.dir;
-const gates = ["check-setup.ts", "check-backend.ts", "check-proxy.ts", "check-ps.ts", "check-oss-faults.ts"];
+const gates = ["check-setup.ts", "check-backend.ts", "check-proxy.ts", "check-match-hosting.ts", "match/check-ue-protocol.ts", "match/check-ue-server.ts", "match/check-ue-match.ts", "match/check-objectives.ts", "match/check-modes.ts", "check-ps.ts", "check-oss-faults.ts"];
 let failed = 0;
 for (const g of gates) {
   const r = Bun.spawnSync(["bun", join(dir, g)], { stdout: "pipe", stderr: "pipe" });

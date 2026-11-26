@@ -29,6 +29,7 @@ const plants: [string, string, string | Buffer][] = [
   ["infrastructure/identity string", "docs/host.md", `backend at loki.${j("fail", "ure")}.fail\n`],
   ["infrastructure/identity string", "server/ip.ts", `const h = "${j("82.22", ".77.", "96")}";\n`],
   ["infrastructure/identity string", "client/path.ps1", `$p = '${j("D:", "\\Games\\", "SUPERVIVE")}'\n`],
+  ["infrastructure/identity string", "docs/peer.md", `seen from ${j("134.82", ".69.69")}:5475\n`],
   ["infrastructure/identity string", "docs/who.md", `pilot ${j("zan", "dylive")}\n`],
   ["secret-shaped string", "server/jwt.txt", `${j("ey", "JhbGciOiJSUzI1NiJ9")}.${j("ey", "JzdWIiOiIxMjM0NTY3ODkwIn0")}.c2lnbmF0dXJlLXZhbHVlLWhlcmU\n`],
   ["secret-shaped string", "server/key.md", `${j("-----BEGIN ", "PRIVATE KEY-----")}\nabc\n`],
@@ -45,6 +46,7 @@ const plants: [string, string, string | Buffer][] = [
   ["generated/dumped game data", "server/dump.json", JSON.stringify(Array.from({ length: 40 }, (_, i) => `/Game/Loki/Maps/M${i}/LVL_M${i}`))],
   ["forbidden directory", "local-data/generated/catalog.json", "{}\n"],
   ["binary file", "docs/blob.dat", Buffer.from([0x4d, 0x5a, 0x00, 0x01, 0x02])],
+  ["unlisted match table", "match/data/retail-world-breach.json", "{}\n"],
 ];
 
 for (const [rule, file, content] of plants) {
@@ -55,6 +57,16 @@ for (const [rule, file, content] of plants) {
   const caught = r.code === 1 && r.out.includes(`FAIL ${rule}`) && r.out.includes(file.split("/").pop()!);
   t.ok(`catches ${rule}: ${file}`, caught, r.out.slice(-600));
   unlinkSync(abs);
+}
+
+// a pinned table that changes must be caught too
+{
+  const f = join(repo, "match/data/match-config.json");
+  const orig = require("node:fs").readFileSync(f);
+  writeFileSync(f, Buffer.concat([orig, Buffer.from(" ")]));
+  const r = run();
+  t.ok("catches a changed pinned match table", r.code === 1 && r.out.includes("FAIL match table changed"), r.out.slice(-400));
+  writeFileSync(f, orig);
 }
 
 const after = run();

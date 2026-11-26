@@ -1,5 +1,5 @@
 <#
-SUPERVIVE Revive — Local Edition: host a match server on this PC.   [EXPERIMENTAL — see docs/LISTEN-SERVER.md]
+SUPERVIVE Revive — Local Edition: host a match server on this PC.   [EXPERIMENTAL — see docs/GAME-SERVER-MODE.md]
 
 Starts, on the host PC only:
   1. client\agones-sdk.mjs — local stand-in for the Agones SDK sidecar, registered with the backend as a match host;
@@ -106,4 +106,4 @@ if (Test-Path $LogPath) {
   Say 'last server log lines of interest:'
   Get-Content $LogPath | Select-String -Pattern 'Agones|CoreGame|LoadMap|Listen|NetDriver|GameMode|Error|Fatal|Exit' | Select-Object -Last 25 | ForEach-Object { "  " + $_.Line }
 }
-if (-not $udp) { Say 'The server did not open its UDP port. Matches will fall back to the lobby. See docs/LISTEN-SERVER.md.' }
+if (-not $udp) { Say 'The server did not open its UDP port. Matches will fall back to the lobby. See docs/GAME-SERVER-MODE.md.' }

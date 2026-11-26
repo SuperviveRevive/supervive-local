@@ -1,0 +1,32 @@
+{
+  "_comment": "NetGUID export paths used by exportsFor(). Defaults reproduce the validated wire test. Real SUPERVIVE 2.0.4 asset paths are listed under candidates for a future real-client bind; switching to them requires a live-client capture because replication graphs and NetGUID assignment are runtime state.",
+  "paths": {
+    "EnginePackage": "/Script/Engine",
+    "GameStateClass": "GameStateBase",
+    "PlayerStateClass": "PlayerState",
+    "PlayerControllerClass": "PlayerController",
+    "CharacterClass": "Character",
+    "Level": "PersistentLevel",
+    "GameStateActor": "LokiGameState",
+    "PlayerStatePrefix": "LokiPlayerState_",
+    "PlayerControllerPrefix": "LokiPlayerController_",
+    "CharacterPrefix": "LokiHero_"
+  },
+  "candidates": {
+    "heroClass": "/Game/Loki/Core/Characters/BP_LokiHeroCharacter.BP_LokiHeroCharacter",
+    "gameStates": [
+      "/Game/Loki/Core/GameModes/BP_LokiGameState.Default__BP_LokiGameState_C",
+      "/Game/Loki/Core/GameModes/BP_LokiBattleRoyaleGameState.Default__BP_LokiBattleRoyaleGameState_C",
+      "/Game/Loki/Core/GameModes/Battlefield/BP_LokiGameState_Battlefield.Default__BP_LokiGameState_Battlefield_C",
+      "/Game/Loki/Core/GameModes/FFA/BP_LokiGameState_FFA.Default__BP_LokiGameState_FFA_C",
+      "/Game/Loki/Core/GameModes/Domination/BP_DominationGameState.Default__BP_DominationGameState_C"
+    ],
+    "playerControllers": [
+      "/Game/Loki/Core/GameModes/FFA/BP_LokiPlayercontroller_FFA.Default__BP_LokiPlayercontroller_FFA_C",
+      "/Game/Loki/Core/GameModes/Domination/BP_LokiPlayerController_Domination.Default__BP_LokiPlayerController_Domination_C",
+      "/Game/Loki/Core/GameModes/Barracuda/BP_BarracudaPlayerController.Default__BP_BarracudaPlayerController_C"
+    ],
+    "netDriver": "/Script/OnlineSubsystemUtils.IpNetDriver",
+    "replicationDriver": "/Script/Loki.LokiReplicationGraph"
+  }
+}

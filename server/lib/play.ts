@@ -2,8 +2,8 @@
 //
 // Match lifecycle (state names are the ones the client reads):
 //   HeroSelect → Allocating → AwaitingReady → InProgress → Complete
-// After Hero Select the match is handed to a registered host PC (one player's machine running its own
-// game in server mode, see docs/LISTEN-SERVER.md). With no host — or with REVIVE_EXPERIMENTAL_HOSTING=0 —
+// After Hero Select the match is handed to a match server registered by a host PC: match/ (docs/MATCHES.md), or
+// the game's own server mode (docs/GAME-SERVER-MODE.md). With no host — or with REVIVE_EXPERIMENTAL_HOSTING=0 —
 // the match completes straight away and everyone returns to the lobby; it never pretends a server exists.
 
 import { randomBytes, randomUUID } from "node:crypto";
@@ -42,6 +42,7 @@ const matchOf = new Map<string, string>();
 const invites: Invite[] = [];
 const hosts = new Map<string, Host>();
 
+const HOST_TIMEOUT = 45_000;
 const STATE_ENUM: Record<Match["state"], number> = { HeroSelect: 1, Allocating: 3, AwaitingReady: 4, InProgress: 5, Complete: 7 };
 
 // ---------------------------------------------------------------------------------------------
@@ -117,7 +118,7 @@ function participantOut(m: Match, p: Participant, order: number) {
 function connection(m: Match, forUser?: string) {
   const live = m.state === "InProgress" && m.address;
   return {
-    address: live && forUser !== m.hostId ? m.address : "",
+    address: live ? m.address : "",
     ServerID: m.hostId, MachineID: m.hostId, RegionID: REGION, FleetID: "local", RoutingToken: "", ConnectionSecret: m.secret, Routes: {},
   };
 }
@@ -143,6 +144,11 @@ export function matchOut(m: Match, forUser?: string) {
     SpectatorConnectionSecret: "",
     CustomGameDetails: { TeamNames: {} },
     EndReason: m.endReason,
+    ArmoryEnabled: true,
+    Teams: [...new Set(m.participants.map((p) => p.team))].sort((a, b) => a - b).map((t) => ({
+      TeamId: t,
+      Members: m.participants.filter((p) => p.team === t).map((p) => ({ UserId: p.id, DisplayName: p.name, TeamId: t, HeroId: p.hero, IsBot: p.bot, Cosmetics: p.skin })),
+    })),
   };
 }
 
@@ -321,7 +327,7 @@ export function activeMatch(uid: string): Match | undefined {
 }
 
 function freeHost(): Host | undefined {
-  return [...hosts.values()].find((h) => !h.matchId && Date.now() - h.seenAt < 10_000 && /Ready|Scheduled|RequestReady/.test(h.state));
+  return [...hosts.values()].find((h) => !h.matchId && Date.now() - h.seenAt < HOST_TIMEOUT && /Ready|Scheduled|RequestReady/.test(h.state));
 }
 
 /** One scheduler step; runs every 500 ms and after every queue change. */
@@ -365,11 +371,11 @@ export function tick() {
       } else if (now - m.allocatingSince > HOST_WAIT_MS) completeMatch(m, "no_host_available");
     } else if (m.state === "AwaitingReady") {
       const h = hosts.get(m.hostId);
-      if (!h || now - h.seenAt > 15_000) completeMatch(m, "host_lost");
+      if (!h || now - h.seenAt > HOST_TIMEOUT) completeMatch(m, "host_lost");
       else if (now - m.allocatingSince > HOST_WAIT_MS * 2) completeMatch(m, "host_never_ready");
     } else if (m.state === "InProgress") {
       const h = hosts.get(m.hostId);
-      if (!h || now - h.seenAt > 30_000) completeMatch(m, "host_lost");
+      if (!h || now - h.seenAt > HOST_TIMEOUT * 2) completeMatch(m, "host_lost");
       else if (h.state === "Shutdown") completeMatch(m, "host_shutdown");
     } else if (m.state === "Complete" && now - Date.parse(m.completedAt) > 10 * 60_000) matches.delete(m.id);
   }
@@ -390,6 +396,43 @@ function markInProgress(m: Match) {
 
 export function handlePlay(c: Ctx): Response | null {
   const { path, method, body } = c;
+
+  // ---- match-server API (called by match/run.ts on the host PC) ----
+  if (path === "/api/ds/register" && method === "POST") {
+    const sid = String(body.serverId || id()).slice(0, 64);
+    const h: Host = {
+      hostId: sid, key: "", address: String(body.host || c.ip || PUBLIC_HOST), port: Number(body.port) || MATCH_PORT,
+      name: `match-server ${sid}`, state: "Ready", matchId: hosts.get(sid)?.matchId || "", seenAt: Date.now(),
+    };
+    hosts.set(sid, h);
+    console.log(`[host] match server ${sid} at ${h.address}:${h.port}`);
+    return json({ ok: true, serverId: sid }, 201);
+  }
+  const dsHb = path.match(/^\/api\/ds\/servers\/([^/]+)\/heartbeat$/);
+  if (dsHb && method === "POST") {
+    const h = hosts.get(decodeURIComponent(dsHb[1]));
+    if (!h || h.key) return error(404, "unknown server");
+    h.seenAt = Date.now();
+    h.state = "Ready";
+    const m = matches.get(h.matchId);
+    if (!m || m.state === "Complete") return json({ ok: true, allocation: null });
+    return json({ ok: true, allocation: { MatchId: m.id, MapName: m.queue.map, GameMode: m.queue.alias, QueueID: m.queue.id } });
+  }
+  const dsReady = path.match(/^\/api\/ds\/matches\/([^/]+)\/ready$/);
+  if (dsReady && method === "POST") {
+    const m = matches.get(decodeURIComponent(dsReady[1]));
+    if (!m) return error(404, "match not found");
+    markInProgress(m);
+    return json({ ok: true, State: m.state });
+  }
+  const dsDel = path.match(/^\/api\/ds\/servers\/([^/]+)$/);
+  if (dsDel && method === "DELETE") {
+    const sid = decodeURIComponent(dsDel[1]);
+    const h = hosts.get(sid);
+    if (h && !h.key) { hosts.delete(sid); const m = matches.get(h.matchId); if (m) completeMatch(m, "host_shutdown"); }
+    return noContent();
+  }
+  if (path === "/api/ds/servers" && method === "GET") return json({ servers: [...hosts.values()].map(({ key, ...h }) => h) });
 
   // ---- host registry (called by client/agones-sdk.mjs on the host PC) ----
   if (path === "/revive/hosts" && method === "POST") {

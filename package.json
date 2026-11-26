@@ -2,14 +2,17 @@
   "name": "supervive-revive-local",
   "version": "0.1.0",
   "private": true,
-  "description": "Local/LAN backend for your own copy of SUPERVIVE 2.0.4. No game files included.",
+  "description": "Local/LAN backend and match server for your own copy of SUPERVIVE 2.0.4. No game files included.",
   "type": "module",
   "scripts": {
     "start": "bun server/main.ts",
     "setup": "bun tools/setup.ts",
     "proxy": "bun client/proxy.mjs serve",
     "check": "bun tools/test/run-all.ts",
-    "check:oss": "bun tools/check-oss.ts"
+    "check:oss": "bun tools/check-oss.ts",
+    "match": "bun match/run.ts"
   },
-  "engines": { "bun": ">=1.1" }
+  "engines": {
+    "bun": ">=1.1"
+  }
 }

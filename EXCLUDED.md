@@ -1,8 +1,8 @@
 # What was left out, and why
 
-This repository was written fresh. Nothing was bulk-copied from the private project it replaces; the
-only things carried over are ideas and a few small pieces of our own code (the certificate writer in
-`client/proxy.mjs`, the catalog path rules in `tools/gen/catalog.ts`), each rewritten. The table lists
+The backend, launcher, proxy and setup were written fresh. The match server in `match/` is our own
+clean-room server from the private project, ported with everything below removed: third-party material,
+recordings and recorded bytes, private infrastructure, and local packet logging (now off by default). The table lists
 what the private project contains that is **not** here. Rule numbers refer to the export rules:
 1 game files · 2 data dumped from the game · 3 retail network captures · 4 third-party work ·
 5 protection circumvention · 6 secrets / personal data · 7 private infrastructure / identity ·
@@ -11,10 +11,10 @@ what the private project contains that is **not** here. Rule numbers refer to th
 | Left out | Rule | Notes |
 |---|---|---|
 | Game client folders, extracted files, release zips, all `.pak/.utoc/.ucas/.sig/.exe/.dll`, mod-loader binaries, certificate bundles, the DLL proxy, the retired older client and its runtime workaround | 1, 5 | Users bring their own install. |
-| `.usmap` mappings, the generated catalog, package lists, AssetRegistry dumps, enum/layout/function-flag dumps, spawn/floor/zone/loot/ability/montage fixtures, store offer lists, executable string dumps, config files extracted from paks | 2 | Replaced by `tools/setup.ts` + `tools/gen/`, which read the user's own install into `local-data/`. |
+| `.usmap` mappings, the generated catalog, package lists, AssetRegistry dumps, class net caches, store offer lists, executable string dumps, config files extracted from paks | 2 | Replaced by `tools/setup.ts` + `tools/gen/`, which read the user's own install into `local-data/`. **Exception (owner's decision, for matches):** the match server's structure tables in `match/data/` — replication layouts and function flags from the executable's reflection data, enum values, spawn locations — ship, each pinned by hash in `tools/match-tables.json`. |
 | AccelByte SDK response-shape catalogues and endpoint lists used by the old coverage/shape gates, and those gates | 2, 4 | The AccelByte Unreal SDK is under a proprietary licence that limits use to games on AccelByte's platform; nothing derived from it is used here. New gates test our own behaviour instead. |
-| The retail capture folder, every `retail-*` tool, the retail-value module and every value in the old backend that cited it (queue priorities, ranked windows, toggle sets, patch versions, game-mode templates, inventory validations, status codes taken from it) | 3 | The new backend uses neutral values; feature toggles are empty unless the host sets them. |
-| The third-party checkpoint folder, the UE host built from it, the clean-room match server (its tables came from captures and that checkpoint), and lobby notes attributed to third-party reverse engineering | 3, 4 | Matches run only on the host's own copy of the game (see `docs/LISTEN-SERVER.md`). |
+| The retail capture files themselves (pcapng, saz, decoded flow dumps), every `retail-*` decoder, every capture fixture used by the old gates, the recorded world replay (`retail-world-*`), and recorded byte blobs inside the match code (Airdoo attribute/icon blocks) | 3 | **Owner's decision:** the match server may be *built from* what the captures showed — decoded rules, field orders, timings, a FireFox ability spec list — but no recording ships. Test vectors that were raw recorded packets (the old drop gate) were removed with them. The backend uses neutral values; feature toggles are empty unless the host sets them. |
+| The third-party checkpoint folder, the UE host built from it, and everything in the match server that came only from it: 24 hunters' ability kits, the ability-to-montage map, per-hunter health and movement tables, instance policy, the Breach terrain triangles and floor-verified spawns | 4 | No permission to publish. The match server ships without them (docs/MATCHES.md lists the effect: only FireFox has abilities; one stats set; no terrain table). Facts the third party *and* the recordings both show stay, attributed to the recordings. |
 | Client memory-inspection and pattern-scan scripts, the logging-command patcher, the mod-loader injector, AES keys and key-search output | 5 | The game runs unmodified. The Lua mods (auto-login, match host, chat bridge) are also out: their loader does not run on this build without defeating its protection. |
 | State and secrets: admin key, Discord bot credentials, JWT signing key, account stores, backend state, active-player and dedicated-server records, install manifest, uploads, match recordings | 6 | Every install generates its own key and state in `local-data/`. |
 | The Discord social integration | 6, 7 | Needed a private bot token and application; not part of this edition. |

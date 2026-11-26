@@ -27,7 +27,8 @@
 | `server/lib/store.ts`, `config.ts` | JSON persistence in `local-data/`, `.env` settings |
 | `client/proxy.mjs` | TLS redirect: CONNECT interception of the game's service hostnames + a direct TLS endpoint; CA install/uninstall |
 | `client/launch.ps1` | Writes reversible config overrides, signs in, launches the game with a one-time auth code |
-| `client/host.ps1`, `client/agones-sdk.mjs` | Experimental match hosting on the host PC |
+| `match/` | Match server (UE5 network protocol, match rules, bots, storm, loot, shops, objectives, abilities); see docs/MATCHES.md |
+| `client/host.ps1`, `client/agones-sdk.mjs` | Alternative, experimental: the game's own server mode (docs/GAME-SERVER-MODE.md) |
 | `tools/setup.ts`, `tools/gen/` | Version check and generators that read the user's own install |
 | `tools/check-oss.ts` | Release gate |
 | `tools/test/` | Gates |
@@ -44,9 +45,9 @@
 ## Match flow
 
 `HeroSelect` (`REVIVE_HERO_SELECT_SECONDS`, or until every human locks in) → `Allocating` →
-with hosting off: `Complete` (`hosting_disabled`); with hosting on: the first idle registered host is
-assigned → `AwaitingReady` → the host's SDK stand-in reports `Allocated` for that match → `InProgress`,
-and every player except the host receives `ConnectionDetails.address = <host LAN IP>:<port>` →
+with hosting off: `Complete` (`hosting_disabled`); otherwise the first idle registered match server is
+assigned → `AwaitingReady` → the server reports ready (`/api/ds/matches/:id/ready`, or the SDK stand-in
+reports `Allocated`) → `InProgress`, and every player receives `ConnectionDetails.address = <host LAN IP>:<port>` →
 `Complete` when the match server posts `/core-game/matches/:id/complete`, the host disappears, or
 nobody is left. No host within `REVIVE_HOST_WAIT_SECONDS` → `Complete` (`no_host_available`).
 
