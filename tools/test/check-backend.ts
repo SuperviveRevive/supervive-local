@@ -117,11 +117,11 @@ try {
 
   // --- config / ownership ---
   const conf = await a.c.call("GET", "/configuration/public");
-  t.ok("client config points every service at the local TLS endpoint", conf.j?.ServiceHostnames?.coregame?.startsWith("https://127.0.0.1:") && conf.j.ServiceHostnames.messaging.startsWith("wss://127.0.0.1:"));
+  t.ok("client config points every service at the local TLS endpoint", conf.j?.ServiceHostnames?.coregame?.startsWith("https://127.0.0.1:") && conf.j.ServiceHostnames.messaging === `wss://localhost:${process.env.REVIVE_TLS_PORT || 24973}/lobby/notifications`);
   const man = await a.c.call("GET", "/content-service/manifest");
   t.ok("content manifest lists every catalog spelling enabled", man.j?.Heroes?.["Hero:Alpha"]?.Status === "Enabled" && man.j.Heroes["Hero:alpha"]);
   const dis = await a.c.call("GET", "/content-service/manifest?nonEnabledOnly=true");
-  t.ok("nothing is disabled", Object.keys(dis.j?.Heroes || { x: 1 }).length === 0);
+  t.ok("nonEnabledOnly still returns the full roster — the manifest is the client's only source", Object.keys(dis.j?.Heroes || {}).length === Object.keys(man.j?.Heroes || {}).length && dis.j.Heroes["Hero:Alpha"]?.Status === "Enabled" && Object.keys(dis.j?.HeroCosmeticsBundles || {}).length === 4 && Object.keys(dis.j?.Emotes || {}).length === 2);
   const inv = await a.c.call("GET", `/inventory/players/${a.uid}`);
   t.ok("inventory owns all assets", inv.j?.AssetEntries?.length === 10 && inv.j.AssetEntries.every((e: any) => e.IsOwned));
   const heroes = await a.c.call("GET", "/storefront/heroes");

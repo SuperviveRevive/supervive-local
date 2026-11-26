@@ -33,6 +33,17 @@
 | `tools/check-oss.ts` | Release gate |
 | `tools/test/` | Gates |
 
+## Two client quirks the backend has to respect
+
+- `LokiAssetManager` bypasses the `AssetManager` directory scan, so the content manifest is the
+  client's only roster source. The client always asks with `nonEnabledOnly=true`; sending an empty
+  manifest in that case leaves the Hunter, Armory and personalisation screens blank. The backend
+  ignores the filter and returns the whole generated catalog as enabled.
+- libwebsockets checks DNS SANs only and rejects an IP SAN (`X509_V_ERR_HOSTNAME_MISMATCH`, err=62),
+  so `messaging` in the client config and the launcher's `LobbyServerUrl` use `wss://localhost` rather
+  than `wss://127.0.0.1`. The proxy binds both `127.0.0.1` and `::1`, and the leaf certificate carries
+  `localhost` as a DNS SAN.
+
 ## Sign-in flow
 
 1. `launch.ps1` posts the chosen name (and the stored profile key, if any) to `/revive/login`.

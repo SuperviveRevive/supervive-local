@@ -338,9 +338,15 @@ function serve() {
   // Direct TLS endpoint: the game's own service URLs are pointed at https://127.0.0.1:<tlsPort>, which
   // works whether or not a given client subsystem honours -httpproxy.
   const tlsPort = Number(A["tls-port"] || process.env.REVIVE_TLS_PORT || port + 1);
-  const direct = tls.createServer({ key: leafKeyPem, cert: leafPem }, (sock) => { sock.__host = `127.0.0.1:${tlsPort}`; inner.emit("connection", sock); });
+  const onDirect = (sock) => { sock.__host = `localhost:${tlsPort}`; inner.emit("connection", sock); };
+  const direct = tls.createServer({ key: leafKeyPem, cert: leafPem }, onDirect);
   direct.on("tlsClientError", (e) => log(`direct tls error: ${e.message}`));
   direct.listen(tlsPort, "127.0.0.1", () => log(`direct TLS listening on 127.0.0.1:${tlsPort}`));
+  // libwebsockets resolves localhost to ::1 first on Windows. Bind IPv6 too where available.
+  const direct6 = tls.createServer({ key: leafKeyPem, cert: leafPem }, onDirect);
+  direct6.on("tlsClientError", (e) => log(`direct tls error: ${e.message}`));
+  direct6.on("error", (e) => log(`direct TLS IPv6 unavailable: ${e.message}`));
+  direct6.listen(tlsPort, "::1", () => log(`direct TLS listening on [::1]:${tlsPort}`));
 }
 
 const cmd = A._[0] || "serve";

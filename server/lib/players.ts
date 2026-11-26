@@ -69,9 +69,3 @@ export function contentManifest() {
     LastUpdated: nowIso(),
   };
 }
-
-export function emptyManifest() {
-  const m = contentManifest();
-  for (const k of Object.keys(m)) if (m[k as keyof typeof m] && typeof m[k as keyof typeof m] === "object" && !Array.isArray(m[k as keyof typeof m])) (m as any)[k] = {};
-  return m;
-}

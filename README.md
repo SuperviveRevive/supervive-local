@@ -84,6 +84,20 @@ powershell -ExecutionPolicy Bypass -File client\launch.ps1 -Name "TheirName" -Ba
 
 In LAN mode the backend only accepts private-range addresses; it is not meant to be exposed to the internet.
 
+## If the client looks empty
+
+The client always requests its roster with `nonEnabledOnly=true`, and `LokiAssetManager` skips the
+normal `AssetManager` directory scan, so the content manifest is its **only** source of hunters,
+cosmetics, emotes and titles. The backend therefore ignores that filter and returns every entry in
+your generated catalog as enabled (see `local-data/generated/catalog.json`). If the Hunter screen is
+blank, check that setup produced a catalog and that the request reached `/content-service/manifest`.
+
+Both WebSocket URLs use the hostname `localhost`, not `127.0.0.1`: libwebsockets checks DNS subject
+alternative names only and rejects the leaf's IP SAN with `X509_V_ERR_HOSTNAME_MISMATCH` (err=62),
+which showed up as `BAD_PACKET_LENGTH` in `local-data/logs/proxy.log`. The launcher's
+`LobbyServerUrl` and the client config's `messaging` host both use `wss://localhost`, and the proxy
+listens on both IPv4 and IPv6 loopback. The leaf certificate has `localhost` as a DNS SAN.
+
 ## What it changes, and how to undo it
 
 1. **Your user config** — a marked block is appended to

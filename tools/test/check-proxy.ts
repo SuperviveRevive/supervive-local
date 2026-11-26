@@ -25,6 +25,8 @@ try {
   t.ok("*.accelbyte.io is intercepted", ab.out.includes("RS256"), ab.err);
   const direct = sh(["curl", "-s", "--cacert", ca, `https://127.0.0.1:${TP}/revive/health`]);
   t.ok("direct TLS endpoint on 127.0.0.1 is trusted by the same CA", direct.out.includes('"ok":true'), direct.err);
+  const dns = sh(["curl", "-s", "--cacert", ca, `https://localhost:${TP}/revive/health`]);
+  t.ok("direct TLS endpoint is trusted by DNS name (libwebsockets checks SANs, not IP SANs)", dns.out.includes('"ok":true'), dns.err);
   const viaProxyDirect = sh(["curl", "-s", "--cacert", ca, "-x", `http://127.0.0.1:${PP}`, `https://127.0.0.1:${TP}/revive/health`]);
   t.ok("CONNECT to the direct endpoint passes through", viaProxyDirect.out.includes('"ok":true'), viaProxyDirect.err);
   const untrusted = sh(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", `https://127.0.0.1:${TP}/revive/health`]);
@@ -38,6 +40,10 @@ try {
   const first = await new Promise<string>((res) => { ws.onmessage = (e) => res(String(e.data)); ws.onerror = () => res("error"); setTimeout(() => res("timeout"), 4000); });
   t.ok("lobby websocket works through the TLS endpoint", first.startsWith("type: connectNotif"), first);
   ws.close();
+  const dnsWs = new WebSocket(`wss://localhost:${TP}/lobby`, { headers: { authorization: `Bearer ${tok.access_token}` }, tls: { ca: await Bun.file(ca).text() } } as any);
+  const dnsFirst = await new Promise<string>((res) => { dnsWs.onmessage = (e) => res(String(e.data)); dnsWs.onerror = () => res("error"); setTimeout(() => res("timeout"), 4000); });
+  t.ok("lobby websocket connects via localhost (Messenger's wss:// URL)", dnsFirst.startsWith("type: connectNotif"), dnsFirst);
+  dnsWs.close();
   const bad = sh(["curl", "-s", "--cacert", ca, `https://127.0.0.1:${TP}/nonexistent/thing`]);
   t.ok("unknown paths still answer (empty success)", bad.code === 0);
 } catch (e) {

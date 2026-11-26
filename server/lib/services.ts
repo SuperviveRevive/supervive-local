@@ -10,7 +10,7 @@ import { assetId, error, json, noContent, nowIso, page, pick, type Ctx } from ".
 import { allProfiles, clientToken, lastLoginFrom, login, profileById, profileByName, profileFromToken, redeemAuthCode, tokenFor, uniqueName, type Profile } from "./accounts.ts";
 import { jwks } from "./jwt.ts";
 import { catalog, CLIENT_BUILD, queues } from "./catalog.ts";
-import { changed, contentManifest, emptyManifest, heroesOut, inventory, loadoutOf, personalization } from "./players.ts";
+import { changed, contentManifest, heroesOut, inventory, loadoutOf, personalization } from "./players.ts";
 import { push } from "./messenger.ts";
 import { playStats } from "./play.ts";
 
@@ -54,7 +54,8 @@ function clientConfig() {
     "entitlement", "redemption", "clientconfig", "matchdetails",
   ];
   const ServiceHostnames: Record<string, string> = Object.fromEntries(names.map((n) => [n, base]));
-  ServiceHostnames.messaging = `wss://127.0.0.1:${TLS_PORT}/lobby/notifications`;
+  // libwebsockets verifies DNS SANs only: an IP SAN is rejected with X509_V_ERR_HOSTNAME_MISMATCH.
+  ServiceHostnames.messaging = `wss://localhost:${TLS_PORT}/lobby/notifications`;
   let toggles: Record<string, unknown> = {};
   try { toggles = JSON.parse(readFileSync(join(DATA_DIR, "feature-toggles.json"), "utf8")); } catch {}
   const etag = `local-${Bun.hash(JSON.stringify(toggles)).toString(16)}`;
@@ -136,7 +137,9 @@ export function handleServices(c: Ctx): Response | null {
   // ---- client configuration & content ----
   if (path === "/configuration/public" || path === "/configuration/client" || path.startsWith("/client-config/")) return clientConfig();
   if (path.startsWith("/content-service/") || path === "/content/manifest" || path === "/content-manifest") {
-    return json(c.url.searchParams.get("nonEnabledOnly") === "true" ? emptyManifest() : contentManifest());
+    // The client always asks for nonEnabledOnly=true, and LokiAssetManager bypasses the AssetManager
+    // directory scan, so this manifest is the client's only roster source. Never send an empty one.
+    return json(contentManifest());
   }
   if (path.startsWith("/postauth/")) return json({ NeedsJWTRefresh: false });
   if (path.startsWith("/behavior/")) return json({ allowed: true, banned: false, bans: [], PenaltyRemainingSeconds: 0 });

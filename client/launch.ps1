@@ -106,7 +106,7 @@ if (-not $status.trusted) {
 # 2. config overrides (user config only) ----------------------------------------------------------
 $base = "https://127.0.0.1:$TlsPort"
 $svc = [ordered]@{
-  BaseUrl = $base; IamServerUrl = "$base/iam"; PlatformServerUrl = "$base/platform"; LobbyServerUrl = "wss://127.0.0.1:$TlsPort/lobby"
+  BaseUrl = $base; IamServerUrl = "$base/iam"; PlatformServerUrl = "$base/platform"; LobbyServerUrl = "wss://localhost:$TlsPort/lobby"
   BasicServerUrl = "$base/basic"; CloudStorageServerUrl = "$base/binary"; GameProfileServerUrl = "$base/soc-profile"
   StatisticServerUrl = "$base/statistic"; QosManagerServerUrl = "$base/qosm"; LeaderboardServerUrl = "$base/leaderboard"
   CloudSaveServerUrl = "$base/cloudsave"; GameTelemetryServerUrl = "$base/game-telemetry"; AgreementServerUrl = "$base/agreement"
